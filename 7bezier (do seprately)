@@ -1,0 +1,109 @@
+#include <GL/glut.h>
+#include <cmath>
+#include <iostream>
+
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 800;
+
+class Points {
+public:
+    int x, y;
+    void set(int x_val, int y_val) {
+        x = x_val;
+        y = y_val;
+    }
+};
+
+static int pointsnum = 0;
+static Points control_points[4];
+
+void plotPoint(Points p) {
+    glBegin(GL_POINTS);
+    glVertex2i(p.x, p.y);
+    glEnd();
+    glFlush();
+}
+
+void plotLine(Points p1, Points p2) {
+    glBegin(GL_LINES);
+    glVertex2i(p1.x, p1.y);
+    glVertex2i(p2.x, p2.y);
+    glEnd();
+    glFlush();
+}
+
+Points bezier(Points p0, Points p1, Points p2, Points p3, double t) {
+    Points p;
+    double u = 1 - t;
+    double tt = t * t;
+    double uu = u * u;
+    double uuu = uu * u;
+    double ttt = tt * t;
+
+    p.x = uuu * p0.x;
+    p.x += 3 * uu * t * p1.x;
+    p.x += 3 * u * tt * p2.x;
+    p.x += ttt * p3.x;
+
+    p.y = uuu * p0.y;
+    p.y += 3 * uu * t * p1.y;
+    p.y += 3 * u * tt * p2.y;
+    p.y += ttt * p3.y;
+
+    return p;
+}
+
+void Mouse(int button, int state, int x, int y) {
+    if (state == GLUT_DOWN) {
+        control_points[pointsnum].set(x, WINDOW_HEIGHT - y);
+        glColor3f(1, 0, 0);
+        plotPoint(control_points[pointsnum]);
+        glColor3f(1, 0, 0);
+        if (pointsnum > 0) plotLine(control_points[pointsnum - 1], control_points[pointsnum]);
+        if (pointsnum == 3) {
+            glColor3f(1, 1, 0);
+            Points pstart = control_points[0];
+            for (double t = 0.0; t <= 1.0; t += 0.01) {
+                Points p = bezier(control_points[0], control_points[1], control_points[2], control_points[3], t);
+                plotLine(pstart, p);
+                pstart = p;
+            }
+            pointsnum = 0;
+        }
+        else {
+            pointsnum++;
+        }
+    }
+}
+
+void display(void) {
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glColor3f(1.0, 1.0, 1.0);
+    glPointSize(2);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT);
+}
+
+void reshape(int width, int height) {
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, width, 0, height);
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    glutInitWindowPosition(100, 100);
+
+    glutCreateWindow("Bezier Curve");
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glutDisplayFunc(display);
+    glutMouseFunc(Mouse);
+
+    glutMainLoop();
+    return 0;
+}
