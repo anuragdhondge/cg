@@ -1,0 +1,153 @@
+//-lopengl32
+//-lfreeglut
+//-lglu32
+
+
+#include <iostream>
+#include <Gl/glut.h>
+#include <math.h>
+
+using namespace std;
+
+void display(int x, int y){
+	
+	glBegin(GL_POINTS);
+	glColor3f(0,1,0);
+	glVertex2i(x,y);
+	glEnd();
+}
+
+
+void quadrant(){
+	
+	int xmax = glutGet(GLUT_WINDOW_WIDTH);
+	int ymax = glutGet(GLUT_WINDOW_HEIGHT);
+	glBegin(GL_LINES);
+	glColor3f(1,0,0);
+	glVertex2i(xmax / 2, 0);
+	glVertex2i(xmax / 2, ymax);
+	glVertex2i(0, ymax / 2);
+	glVertex2i(xmax, ymax / 2);
+	glEnd();
+}
+
+void drawLine(int x1, int y1, int x2, int y2, int x3, int y3){
+	glBegin(GL_LINES);
+	glColor3f(1,1,0);
+	
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y2);
+	
+	glVertex2i(x2, y2);
+	glVertex2i(x3, y3);
+	
+	glVertex2i(x3, y3);
+	glVertex2i(x1, y1);
+	
+
+	glEnd();
+}
+
+void reflect(int x1, int y1, int x2, int y2, int x3, int y3 ){
+	drawLine(x1, y1, x2, y2, x3, y3);
+	int x11 = -x1;
+	int x22 = -x2;
+	int x33 = -x3;
+	drawLine(x11, y1, x22, y2, x33, y3);
+}
+
+void scale(int x1, int y1, int x2, int y2, int x3, int y3) {
+
+    drawLine(x1, y1, x2, y2, x3, y3);
+
+    int cx = (x1 + x2 + x3) / 3;
+    int cy = (y1 + y2 + y3) / 3;
+
+    int sfx = 2, sfy = 2;
+
+    x1 -= cx; y1 -= cy;
+    x2 -= cx; y2 -= cy;
+    x3 -= cx; y3 -= cy;
+
+    x1 *= sfx; y1 *= sfy;
+    x2 *= sfx; y2 *= sfy;
+    x3 *= sfx; y3 *= sfy;
+
+    x1 += cx; y1 += cy;
+    x2 += cx; y2 += cy;
+    x3 += cx; y3 += cy;
+
+    drawLine(x1, y1, x2, y2, x3, y3);
+}
+
+
+void rotate(int x1, int y1, int x2, int y2, int x3, int y3) {
+
+    drawLine(x1, y1, x2, y2, x3, y3);
+
+    double deg = 60.0;
+    double rad = deg * 3.14/ 180.0;
+
+    int rotated_x1 = round(x1 * cos(rad) - y1 * sin(rad));
+    int rotated_y1 = round(x1 * sin(rad) + y1 * cos(rad));
+
+    int rotated_x2 = round(x2 * cos(rad) - y2 * sin(rad));
+    int rotated_y2 = round(x2 * sin(rad) + y2 * cos(rad));
+
+    int rotated_x3 = round(x3 * cos(rad) - y3 * sin(rad));
+    int rotated_y3 = round(x3 * sin(rad) + y3 * cos(rad));
+	
+	cout<<rotated_x3;
+    drawLine(rotated_x1, rotated_y1, rotated_x2, rotated_y2, rotated_x3, rotated_y3);
+}
+
+
+
+
+void menu()
+{
+	int x1=100, y1=200, x2=200, y2=300, x3=300, y3=200;
+
+	int op;
+	cout<<"Enter Operation you want to do: \n";
+	cout<<"**********Menu*********"<<"\n";
+	cout<<"1. Scaling\n";
+	cout<<"2. Rotate\n";
+	cout<<"3. Reflection\n";
+	cin>>op;
+	if(op==1){
+		scale(x1, y1, x2, y2, x3, y3);
+	}
+	else if(op==2){
+		rotate(x1, y1, x2, y2, x3, y3);
+	}
+	else if(op==3){
+		reflect(x1, y1, x2, y2, x3, y3);
+	}	
+}
+
+
+void window(){
+	
+	glClearColor(0.0,0.0,0.0,0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	glMatrixMode(GL_PROJECTION);
+	gluOrtho2D(-640, 640, -480, 480);
+//	quadrant();
+	menu();
+	glFlush();
+}
+
+int main(int argc, char** argv) {
+	
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowSize(640, 480);
+	glutInitWindowPosition(100,100);
+	glutCreateWindow("Assignment 6");
+	glutDisplayFunc(window);
+	glutMainLoop();	
+	
+	return 0;
+}
